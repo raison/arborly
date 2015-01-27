@@ -1,107 +1,235 @@
-
-var express = require('express')
-, routes = require('./routes')
-, http = require('http')
-, path = require('path');
+var express = require('express'),
+    routes = require('./routes'),
+    http = require('http'),
+    path = require('path');
 
 var app = express();
 
-app.configure(function(){
-	app.set('port', process.env.PORT || 3000);
-	app.set('views', __dirname + '/views');
-	app.use(express.favicon());
-	app.use(express.logger('dev'));
-	app.use(express.bodyParser());
-	app.use(express.methodOverride());
-	app.use(app.router);
-	app.use(express.static(path.join(__dirname, 'public')));
+app.configure(function() {
+    app.set('port', process.env.PORT || 3000);
+    app.set('views', __dirname + '/views');
+    app.use(express.favicon());
+    app.use(express.logger('dev'));
+    app.use(express.bodyParser());
+    app.use(express.methodOverride());
+    app.use(app.router);
+    app.use(express.static(path.join(__dirname, 'public')));
 });
-
-var mysql      = require('mysql');
+var traverse = require('traverse');
+var mysql = require('mysql');
 var connection = mysql.createConnection({
-	database     : 'db_name',
-	host     : 'host',
-	user     : 'username',
-	password : 'password',
+    database: 'arborly',
+    host: 'localhost',
+    user: 'root',
+    password: '5up3rfly',
 });
 
-/*  Test Query
-connection.query('SELECT * FROM `badges` WHERE 1', function(err, rows) {
-	console.log(rows);// connected! (unless `err` is set)
-});  
-*/
-
-app.configure('development', function(){
-	app.use(express.errorHandler());
-});
-
-app.get('/', function(req,res) {
-	res.sendfile('public/index.html');
-});
-app.get('/api/tree/:startNode', function(req,res) {
-var theTree = {};
-theTree =
-{
- "name": "Bob Dobbs",
- "id": "1",
- "jobtitle": "big boss",
- "children": [
-  {
-   "name": "Suzie Morgan",
- "id": "2",
- "jobtitle": "czar",   
-   "children": [
-    {
-     "name": "Tom Bradford",
-      "id": "3",
- "jobtitle": "poobah",
-     "children": [
-      {"name": "Greg Simmons", "id": "4", "jobtitle": "drone"},
-      {"name": "Nancy Fitz", "id": "5", "jobtitle": "drone"},
-      {"name": "Shep Wooley", "id": "6", "jobtitle": "drone"},
-      {"name": "Ananda Gupta", "id": "7", "jobtitle": "drone"}
-     ]
-    },
-    {
-     "name": "Hi Harrison",
-      "id": "8",
- "jobtitle": "czar",  
-     "children": [
-      {"name": "Sweeney Todd", "id": "9", "jobtitle": "drone"},
-      {"name": "Glorp Gaston", "id": "10", "jobtitle": "drone"},
-      {"name": "Mike Palindrome", "id": "11", "jobtitle": "drone"},
-      {"name": "Jesus Murphy", "id": "12", "jobtitle": "drone"},
-      {"name": "Dave Dane", "id": "13", "jobtitle": "drone"}
-     ]
-    },
-    {
-     "name": "Paul Jones",
-      "id": "14",
- "jobtitle": "czar",  
-     "children": [
-      {"name": "Calvin Borkum", "id": "15", "jobtitle": "drone"}
-     ]
+connection.connect(function(err) {
+    if (err) {
+        console.error('error connecting: ' + err.stack);
+        return;
     }
-   ]
-  }
- ]
-};
-   res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(theTree));
+
+    console.log('connected as id ' + connection.threadId);
 });
-app.post('/api/edit', function(req,res) {
-req.body.jobtitle = "newjobtitle";
-	res.send(req.body);
+
+connection.query("SELECT * FROM people", function(err, rows) {
+    console.log("here are rows: ", rows);
 });
-app.post('/api/add', function(req,res) {
-	res.send(req.body);
+
+
+app.configure('development', function() {
+    app.use(express.errorHandler());
 });
-app.post('/api/show', function(req,res) {
-	res.send(req.body);
+
+function convert(array) {
+        var map = {};
+        for (var i = 0; i < array.length; i++) {
+            var obj = array[i];
+            obj.children = [];
+
+            map[obj.id] = obj;
+
+            var parent = obj.parent || '-';
+            if (!map[parent]) {
+                map[parent] = {
+                    children: []
+                };
+            }
+            map[parent].children.push(obj);
+        }
+
+        return map['-'].children;
+
+    }
+    /*
+    {"name":"Siouxie Sioux number 7","jobtitle":"Chanteuse 543","parent":1,"id":"2","children":[{"name":"Joe Palooka","jobtitle":"Grunt","parent":2,"id":"4","children":[]},{"name":"Jim Dandy","jobtitle":"Janitor","parent":2,"id":"5","children":[]},{"name":"Gwendolyn Jones","jobtitle":"SuperFly","parent":2,"id":"6","children":[]}]}
+    */
+function sort(obj, sortBy) {
+    var list = [];
+
+    function iterate(obj) {
+        for (var property in obj) {
+            if (obj.hasOwnProperty(property)) {
+                if (list.indexOf([obj.name, obj.jobtitle, obj.id]) == -1) {
+                    if (obj.name !== null) {
+                        list.push([obj.name, obj.jobtitle, obj.id])
+                    }
+                }
+                if (typeof obj[property] == "object") {
+                    iterate(obj[property]);
+                } else {
+                    // console.log(property + "   " + obj[property]);
+                }
+            }
+        }
+    }
+    iterate(obj);
+
+    var seen = {};
+    var out = [];
+    var len = list.length;
+    var j = 0;
+    for (var i = 0; i < len; i++) {
+        var item = list[i];
+        if (seen[item] !== 1) {
+            seen[item] = 1;
+            console.log("checking: ", item);
+            if (item.indexOf(undefined) == -1) {
+                out[j++] = item;
+            }
+        }
+    }
+
+    function ComparatorName(a, b) {
+        if (a[0].toUpperCase() < b[0].toUpperCase()) return -1;
+        if (a[0].toUpperCase() > b[0].toUpperCase()) return 1;
+        return 0;
+    }
+
+    function ComparatorJobtitle(a, b) {
+        if (a[1].toUpperCase() < b[1].toUpperCase()) return -1;
+        if (a[1].toUpperCase() > b[1].toUpperCase()) return 1;
+        return 0;
+    }
+    if (sortBy == "name") {
+        out = out.sort(ComparatorName);
+    } else {
+        console.log("by job title");
+        out = out.sort(ComparatorJobtitle);
+    }
+    return out;
+}
+app.get('/', function(req, res) {
+    res.sendfile('public/index.html');
 });
-app.post('/api/list', function(req,res) {
-	res.send(req.body);
+app.get('/api/tree/:startNode', function(req, res) {
+
+    connection.query("SELECT * FROM people ORDER BY person_id", function(err, rows) {
+        console.log("here are rows: ", rows);
+        for (var i = 0; i < rows.length; i++) {
+            rows[i].id = rows[i].person_id + "";
+            delete rows[i].person_id;
+        }
+
+
+
+
+        var theTree = convert(rows);
+        console.log("the start node " + req.params.startNode);
+        if (req.params.startNode !== "0") {
+
+            function scan(obj) {
+                var k;
+                if (obj instanceof Object) {
+                    for (k in obj) {
+
+                        if (obj.hasOwnProperty(k)) {
+                            if (k == "id" && obj[k] == req.params.startNode) {
+                                console.log("found target: ", obj);
+                                res.setHeader('Content-Type', 'application/json');
+                                res.end(JSON.stringify(obj));
+                            } else {
+                                scan(obj[k]);
+                            }
+                        }
+                    }
+                } else {
+                    console.log("down here");
+                };
+
+            };
+
+            scan(theTree);
+        } else {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(theTree[0]));
+        }
+    });
+
 });
-http.createServer(app).listen(app.get('port'), function(){
-	console.log("Express server listening on port " + app.get('port'));
+app.post('/api/edit', function(req, res) {
+    var query = "UPDATE people SET " + req.body.name + "='" + req.body.value + "' WHERE person_id=" + req.body.pk;
+    connection.query(query, function(err, rows) {
+        connection.query("SELECT * FROM people WHERE person_id=" + req.body.pk, function(err, rows) {
+            res.send(rows);
+        });
+    });
+});
+app.post('/api/add', function(req, res) {
+    console.log("adding", req.body);
+    var query = "INSERT INTO people (name, jobtitle, parent) VALUES ('" + req.body.name + "', '" + req.body.jobtitle + "', '" + req.body.parent + "')";
+    connection.query(query, function(err, rows) {
+        console.log(err, rows);
+        res.send(rows);
+
+    });
+});
+
+app.get('/api/list/:startNode/:sort', function(req, res) {
+    connection.query("SELECT * FROM people ORDER BY person_id", function(err, rows) {
+        console.log("here are rows: ", rows);
+        for (var i = 0; i < rows.length; i++) {
+            rows[i].id = rows[i].person_id + "";
+            delete rows[i].person_id;
+        }
+
+        var theTree = convert(rows);
+        console.log("the start node " + req.params.startNode);
+        if (req.params.startNode !== "0") {
+
+            function scan(obj) {
+                var k;
+                if (obj instanceof Object) {
+                    for (k in obj) {
+
+                        if (obj.hasOwnProperty(k)) {
+                            if (k == "id" && obj[k] == req.params.startNode) {
+                                console.log("found target: ", obj);
+                                var theList = sort(obj, req.params.sort);
+                                res.setHeader('Content-Type', 'application/json');
+                                res.end(JSON.stringify(theList));
+                                var theList = obj;
+                                break;
+                            } else {
+                                scan(obj[k]);
+                            }
+                        }
+                    }
+                } else {
+
+                };
+
+            };
+
+            scan(theTree);
+        } else {
+            var theList = sort(theTree[0], req.params.sort);
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(theList));
+        }
+    });
+});
+http.createServer(app).listen(app.get('port'), function() {
+    console.log("Express server listening on port " + app.get('port'));
 });

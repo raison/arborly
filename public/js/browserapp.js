@@ -23,8 +23,11 @@ arborly.showEdit = function(d) {
         url: '/api/edit',
         title: 'Name',
         value: d.name,
-        success: function(data){arborly.updateNode(data);},
-        error: function(data){}
+        success: function(data) {
+            console.log("here tis: ", data);
+            arborly.updateNode(data);
+        },
+        error: function(data) {}
     });
     $('#editform .editjobtitle').editable({
         type: 'text',
@@ -33,8 +36,11 @@ arborly.showEdit = function(d) {
         url: '/api/edit',
         title: 'Job Title',
         value: d.jobtitle,
-        success: function(data){arborly.updateNode(data);},
-        error: function(data){}
+        success: function(data) {
+            console.log("here tis: ", data);
+            arborly.updateNode(data);
+        },
+        error: function(data) {}
     });
 
     $("#editform").on("mouseleave", function(e) {
@@ -53,53 +59,85 @@ arborly.showEdit = function(d) {
     $(".node-edit button").on("click", function(e) {
         e.preventDefault();
         var method = $(this).attr("data-method");
-        $(".node-edit button").removeClass("active");
+        $("#editform .node-edit button").removeClass("active");
         $(this).addClass("active");
         $(".controlpanel").hide();
-        console.log("method: "+method, "d: ", d);
+        console.log("method: " + method, "d: ", d);
         $("#editform ." + method + "Node").show();
-        if(method == "show"){
-        	arborly.editNode({id: d.id}, "show");
+        if (method == "show") {
+            arborly.editNode({
+                id: d.id
+            }, "show");
         }
+    });
+    $(".create-node").on("click", function(e) {
+        e.preventDefault();
+        var newName = $(this).parent().parent().find("input[name=newname]").val();
+        var newTitle = $(this).parent().parent().find("input[name=newtitle]").val();
+        console.log("creating new " + newName + " " + newTitle);
+        if (newTitle != "" && newName != "") {
+            arborly.editNode({
+                "name": newName,
+                "jobtitle": newTitle,
+                "id": d.id
+            }, "add");
+        }
+    });
+
+    $(".sort-node").on("click", function(e) {
+        e.preventDefault();
+        console.log("clicked on it");
+        arborly.editNode({
+            "id": d.id,
+            "sort": $(this).attr("data-sort")
+        }, "list");
     });
 }
 arborly.editNode = function(data, method) {
     console.log("editing node", data);
-    if(method == "add"){
-		$.post( "/api/add", { name: data.name, jobtitle: data.jobtitle, id: data.id })
-  		.done(function( data ) {
-    		//alert( "Data Loaded: " + data );
-  		});   
+    if (method == "add") {
+        $.post("/api/add", {
+                name: data.name,
+                jobtitle: data.jobtitle,
+                parent: data.id
+            })
+            .done(function(data) {
+                doTree(arborly.startNode);
+            });
     }
-    if(method == "show"){
-    arborly.startNode = data.id;
-		$.post( "/api/show", { id: arborly.startNode })
-  		.done(function( data ) {
-  		if(arborly.startNode > 1){
-  		$("#start-node").html('Viewing tree from node '+arborly.startNode+'. <button type="button" class="btn btn-info reset-tree">reset to root</button>');
-  		$(".reset-tree").unbind("click");
-  		$(".reset-tree").on("click", function(){
-  			doTree(1);
-  			$("#start-node").html('Viewing tree from root node.');
-  		});
-  		} else {
-  		$("#start-node").html('Viewing tree from root node.');
-  		}
-    		doTree(arborly.startNode);
-  		});     
-    }    
-    if(method == "list"){
-		$.post( "/api/list", { id: data.id, sort: data.sort })
-  		.done(function( data ) {
-    		alert( "Data Loaded: " + data );
-  		});     
+    if (method == "show") {
+        arborly.startNode = data.id;
+        if (arborly.startNode > 1) {
+            $("#start-node").html('Viewing tree from node ' + arborly.startNode + '. <button type="button" class="btn btn-info reset-tree">reset to root</button>');
+            $(".reset-tree").unbind("click");
+            $(".reset-tree").on("click", function() {
+                doTree(1);
+                $("#start-node").html('Viewing tree from root node.');
+            });
+        } else {
+            doTree(1);
+            $("#start-node").html('Viewing tree from root node.');
+        }
+        doTree(arborly.startNode);
+
+    }
+    if (method == "list") {
+        $.get("/api/list/" + data.id + "/" + data.sort)
+            .done(function(data) {
+                console.log("the list data: ", data);
+                var html = '<table class="table table-striped table-bordered table-condensed"><thead><tr><th>Name</th><th>Job Title</th></tr></thead><tbody>';
+                for (var i = 0; i < data.length; i++) {
+                    html += "<tr><td>" + data[i][0] + "</td><td>" + data[i][1] + "</td></tr>";
+                }
+                html += "</tbody></table>";
+                $("#editform .sorted-list").html(html);
+            });
     }
 }
-arborly.updateNode = function(d, method) {
-    console.log("updating node", d);
-    if(d.name == "name"){var newText = d.value+" - jobtitle";}
-    if(d.name == "jobtitle"){var newText = "thename - "+ d.value;}
-    $("text[id="+d.pk+"]").text(newText)
+arborly.updateNode = function(data) {
+    console.log("updating node hi", data);
+    var newText = data[0].name + " - " + data[0].jobtitle;
+    $("text[id=" + data[0].person_id + "]").text(newText)
 }
 
 var margin = {
@@ -128,23 +166,23 @@ var svg = d3.select("body").append("svg")
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-var doTree = function(startNode){
-d3.json("/api/tree/"+startNode, function(error, flare) {
-    root = flare;
-    root.x0 = height / 2;
-    root.y0 = 0;
+var doTree = function(startNode) {
+    d3.json("/api/tree/" + startNode, function(error, flare) {
+        root = flare;
+        root.x0 = height / 2;
+        root.y0 = 0;
 
-    function collapse(d) {
-        if (d.children) {
-            d._children = d.children;
-            d._children.forEach(collapse);
-            d.children = null;
+        function collapse(d) {
+            if (d.children) {
+                d._children = d.children;
+                d._children.forEach(collapse);
+                d.children = null;
+            }
         }
-    }
 
-    root.children.forEach(collapse);
-    update(root);
-});
+        root.children.forEach(collapse);
+        update(root);
+    });
 }
 doTree(0);
 d3.select(self.frameElement).style("height", "800px");
@@ -275,6 +313,7 @@ function update(source) {
 
 // Toggle children on click.
 function click(d) {
+    console.log("clicking: ", d);
     if (d.children) {
         d._children = d.children;
         d.children = null;
@@ -283,6 +322,14 @@ function click(d) {
         d._children = null;
     }
     update(d);
+}
+
+function openAll() {
+    svg.selectAll("g.node").data(nodes, function(d) {
+        d.children = d._children;
+        d._children = null;
+        update(d);
+    });
 }
 
 function hover(d) {
