@@ -19,7 +19,6 @@ var traverse = require('traverse');
 var mysql = require('mysql');
 var connection = mysql.createConnection({
     database: 'heroku_679c9f4e343c163',
-    //host: 'mysql://bdbc3e7d415a19:aacfb504@us-cdbr-iron-east-01.cleardb.net/heroku_679c9f4e343c163?reconnect=true',
     host: 'us-cdbr-iron-east-01.cleardb.net',
     user: 'bdbc3e7d415a19',
     password: 'aacfb504',
@@ -63,9 +62,7 @@ function convert(array) {
         return map['-'].children;
 
     }
-    /*
-    {"name":"Siouxie Sioux number 7","jobtitle":"Chanteuse 543","parent":1,"id":"2","children":[{"name":"Joe Palooka","jobtitle":"Grunt","parent":2,"id":"4","children":[]},{"name":"Jim Dandy","jobtitle":"Janitor","parent":2,"id":"5","children":[]},{"name":"Gwendolyn Jones","jobtitle":"SuperFly","parent":2,"id":"6","children":[]}]}
-    */
+
 function sort(obj, sortBy) {
     var list = [];
 
@@ -95,7 +92,6 @@ function sort(obj, sortBy) {
         var item = list[i];
         if (seen[item] !== 1) {
             seen[item] = 1;
-            console.log("checking: ", item);
             if (item.indexOf(undefined) == -1) {
                 out[j++] = item;
             }
@@ -127,7 +123,6 @@ app.get('/', function(req, res) {
 app.get('/api/tree/:startNode', function(req, res) {
 
     connection.query("SELECT * FROM people ORDER BY person_id", function(err, rows) {
-        console.log("here are rows: ", rows);
         for (var i = 0; i < rows.length; i++) {
             rows[i].id = rows[i].person_id + "";
             delete rows[i].person_id;
@@ -147,7 +142,6 @@ app.get('/api/tree/:startNode', function(req, res) {
 
                         if (obj.hasOwnProperty(k)) {
                             if (k == "id" && obj[k] == req.params.startNode) {
-                                console.log("found target: ", obj);
                                 res.setHeader('Content-Type', 'application/json');
                                 res.end(JSON.stringify(obj));
                             } else {
@@ -156,7 +150,7 @@ app.get('/api/tree/:startNode', function(req, res) {
                         }
                     }
                 } else {
-                    console.log("down here");
+                
                 };
 
             };
@@ -189,7 +183,6 @@ app.post('/api/add', function(req, res) {
 
 app.get('/api/list/:startNode/:sort', function(req, res) {
     connection.query("SELECT * FROM people ORDER BY person_id", function(err, rows) {
-        console.log("here are rows: ", rows);
         for (var i = 0; i < rows.length; i++) {
             rows[i].id = rows[i].person_id + "";
             delete rows[i].person_id;
@@ -206,7 +199,6 @@ app.get('/api/list/:startNode/:sort', function(req, res) {
 
                         if (obj.hasOwnProperty(k)) {
                             if (k == "id" && obj[k] == req.params.startNode) {
-                                console.log("found target: ", obj);
                                 var theList = sort(obj, req.params.sort);
                                 res.setHeader('Content-Type', 'application/json');
                                 res.end(JSON.stringify(theList));

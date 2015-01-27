@@ -24,7 +24,6 @@ arborly.showEdit = function(d) {
         title: 'Name',
         value: d.name,
         success: function(data) {
-            console.log("here tis: ", data);
             arborly.updateNode(data);
         },
         error: function(data) {}
@@ -37,7 +36,6 @@ arborly.showEdit = function(d) {
         title: 'Job Title',
         value: d.jobtitle,
         success: function(data) {
-            console.log("here tis: ", data);
             arborly.updateNode(data);
         },
         error: function(data) {}
@@ -62,7 +60,6 @@ arborly.showEdit = function(d) {
         $("#editform .node-edit button").removeClass("active");
         $(this).addClass("active");
         $(".controlpanel").hide();
-        console.log("method: " + method, "d: ", d);
         $("#editform ." + method + "Node").show();
         if (method == "show") {
             arborly.editNode({
@@ -74,7 +71,6 @@ arborly.showEdit = function(d) {
         e.preventDefault();
         var newName = $(this).parent().parent().find("input[name=newname]").val();
         var newTitle = $(this).parent().parent().find("input[name=newtitle]").val();
-        console.log("creating new " + newName + " " + newTitle);
         if (newTitle != "" && newName != "") {
             arborly.editNode({
                 "name": newName,
@@ -86,7 +82,6 @@ arborly.showEdit = function(d) {
 
     $(".sort-node").on("click", function(e) {
         e.preventDefault();
-        console.log("clicked on it");
         arborly.editNode({
             "id": d.id,
             "sort": $(this).attr("data-sort")
@@ -94,7 +89,6 @@ arborly.showEdit = function(d) {
     });
 }
 arborly.editNode = function(data, method) {
-    console.log("editing node", data);
     if (method == "add") {
         $.post("/api/add", {
                 name: data.name,
@@ -124,7 +118,6 @@ arborly.editNode = function(data, method) {
     if (method == "list") {
         $.get("/api/list/" + data.id + "/" + data.sort)
             .done(function(data) {
-                console.log("the list data: ", data);
                 var html = '<table class="table table-striped table-bordered table-condensed"><thead><tr><th>Name</th><th>Job Title</th></tr></thead><tbody>';
                 for (var i = 0; i < data.length; i++) {
                     html += "<tr><td>" + data[i][0] + "</td><td>" + data[i][1] + "</td></tr>";
@@ -135,7 +128,6 @@ arborly.editNode = function(data, method) {
     }
 }
 arborly.updateNode = function(data) {
-    console.log("updating node hi", data);
     var newText = data[0].name + " - " + data[0].jobtitle;
     $("text[id=" + data[0].person_id + "]").text(newText)
 }
