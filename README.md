@@ -1,6 +1,6 @@
-express_mysql_starter
+Arborly
 =====================
 
-Express + MySql boilerplate for Node,js applications
+This is a test app for the Namely team.
 
-See it in action here! http://stormy-escarpment-2091.herokuapp.com/
+See it in action here! https://cryptic-plateau-3657.herokuapp.com/
