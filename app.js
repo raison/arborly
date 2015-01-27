@@ -33,9 +33,6 @@ connection.connect(function(err) {
     console.log('connected as id ' + connection.threadId);
 });
 
-connection.query("SELECT * FROM people", function(err, rows) {
-    console.log("here are rows: ", rows);
-});
 
 
 app.configure('development', function() {

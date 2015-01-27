@@ -172,7 +172,7 @@ var doTree = function(startNode) {
             }
         }
 
-        root.children.forEach(collapse);
+        //root.children.forEach(collapse);
         update(root);
     });
 }
