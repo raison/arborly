@@ -125,7 +125,6 @@ function sort(obj, sortBy) {
     if (sortBy == "name") {
         out = out.sort(ComparatorName);
     } else {
-        console.log("by job title");
         out = out.sort(ComparatorJobtitle);
     }
     return out;
