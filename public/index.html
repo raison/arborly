@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Arborly</title>
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+    <div class="navbar navbar-inverse navbar-static-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">arborly</a>
+            </div>
+            <div class="collapse navbar-collapse">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+    	<h1>I think that I shall never see / A poem lovely as a tree.</h1>
+    	<h2 id="start-node">Viewing tree from root node.</h2>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <script src="/js/tree.js"></script>
+    <script src="/js/browserapp.js"></script>
+    <div id="form-template" class="panel panel-default" style="display:none;">
+        <div class="panel-heading">
+            <div class="btn-group btn-group-xs node-edit" role="group" aria-label="">
+                <button type="button" class="btn btn-info active" data-method="edit">Edit this node</button>
+                <button type="button" class="btn btn-info" data-method="add">Add a sub-node</button>
+                <button type="button" class="btn btn-info" data-method="show">Show just this sub-tree</button>
+                <button type="button" class="btn btn-info" data-method="list">Retrieve List</button>
+            </div>
+            <a class="close" href="#">X</a>
+            <div style="clear:both;"></div>
+        </div>
+        <div class="panel-body">
+            <div class="controlpanel editNode">
+                <p>Name:
+                    <a href="#" class="editname"></a>
+                </p>
+                <p>Job Title:
+                    <a href="#" class="editjobtitle"></a>
+                </p>
+            </div>
+            <div class="controlpanel addNode" style="display:none;">
+                <p>Name:
+                    <input type="text" name="newname" />
+                </p>
+                <p>Job Title:
+                    <input type="text" name="newtitle" />
+                </p>
+                <p>
+                	<button type="button" class="btn btn-info create-node">create node</button>            
+            </div>
+            <div class="controlpanel showNode" style="display:none;">
+            Fetching subtree from server and redrawing...
+            </div>
+            <div class="controlpanel listNode" style="display:none;">
+            	<button type="button" class="btn btn-info sort-node" data-sort="name">Sort by Name</button> 
+            	<button type="button" class="btn btn-info sort-node" data-sort="jobtitle">Sort by Job Title</button>  
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
