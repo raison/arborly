@@ -305,7 +305,6 @@ function update(source) {
 
 // Toggle children on click.
 function click(d) {
-    console.log("clicking: ", d);
     if (d.children) {
         d._children = d.children;
         d.children = null;
