@@ -18,10 +18,11 @@ app.configure(function() {
 var traverse = require('traverse');
 var mysql = require('mysql');
 var connection = mysql.createConnection({
-    database: 'arborly',
-    host: 'localhost',
-    user: 'root',
-    password: '5up3rfly',
+    database: 'heroku_679c9f4e343c163',
+    //host: 'mysql://bdbc3e7d415a19:aacfb504@us-cdbr-iron-east-01.cleardb.net/heroku_679c9f4e343c163?reconnect=true',
+    host: 'us-cdbr-iron-east-01.cleardb.net',
+    user: 'bdbc3e7d415a19',
+    password: 'aacfb504',
 });
 
 connection.connect(function(err) {
